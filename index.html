@@ -169,6 +169,17 @@
         div.innerText = i;
         cont.appendChild(div);
     }
+// --- LÓGICA DE SEGURIDAD PARA CLIENTES ---
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('cliente') === 'si') {
+    // Escondemos el botón de sumar y el campo de correo para el cliente
+    document.getElementById('btnSumar').style.display = 'none';
+    document.querySelector('label[for="clienteCorreo"]')?.parentElement.style.display = 'none';
+    document.getElementById('clienteCorreo').parentElement.style.display = 'none';
+    
+    // Cambiamos el texto de bienvenida
+    document.querySelector('p').innerText = "Consulta tus sellos acumulados";
+}
 </script>
 </body>
 </html>
