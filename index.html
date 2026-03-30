@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png"> 
-   <meta charset="UTF-8">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recompensas SliceDog 🍕</title>
     <style>
@@ -36,8 +36,8 @@
 <body>
 
 <div class="card">
-    <h2>Slice Dog 🍕</h2>
-    <p>Programa de Recompensa</p>
+    <h2 id="titulo">Slice Dog 🍕</h2>
+    <p id="subtitulo">Programa de Recompensa</p>
     
     <div class="input-group">
         <label>WHATSAPP / ID DEL CLIENTE</label>
@@ -47,18 +47,18 @@
         </div>
     </div>
 
-    <div class="input-group">
+    <div class="input-group" id="grupoNombre">
         <label>NOMBRE CLIENTE</label>
         <input type="text" id="clienteNombre" placeholder="Nombre completo">
     </div>
 
-    <div class="input-group">
+    <div class="input-group" id="grupoCorreo">
         <label>CORREO ELECTRÓNICO (Opcional)</label>
         <input type="email" id="clienteCorreo" placeholder="ejemplo@correo.com">
     </div>
 
     <button class="btn-main" id="btnSumar" onclick="sumarPunto()">+ REGISTRAR PIZZA</button>
-    <button class="btn-clear" onclick="limpiarFormulario()">Limpiar / Nuevo Cliente</button>
+    <button class="btn-clear" id="btnClear" onclick="limpiarFormulario()">Limpiar / Nuevo Cliente</button>
     
     <a href="#" id="linkWhatsapp" class="btn-whatsapp" target="_blank">📲 ENVIAR RECORDATORIO</a>
     
@@ -115,14 +115,18 @@
             iluminar(data.puntos || 0);
             if (data.existe) {
                 document.getElementById('clienteNombre').value = data.nombre;
-                document.getElementById('clienteNombre').disabled = true; // BLOQUEO PARA EVITAR MEZCLAS
+                document.getElementById('clienteNombre').disabled = true;
                 document.getElementById('clienteCorreo').value = data.correo || "";
                 actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
             } else {
-                alert("Cliente nuevo. Por favor ingresa el nombre.");
-                document.getElementById('clienteNombre').disabled = false;
-                document.getElementById('clienteNombre').value = "";
-                document.getElementById('clienteCorreo').value = "";
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('cliente') !== 'si') {
+                    alert("Cliente nuevo. Por favor ingresa el nombre.");
+                    document.getElementById('clienteNombre').disabled = false;
+                    document.getElementById('clienteNombre').value = "";
+                } else {
+                    alert("Número no registrado. Consulta en el mostrador.");
+                }
             }
         } catch (e) { alert("Error de conexión"); }
     }
@@ -145,8 +149,6 @@
             
             iluminar(data.puntos);
             actualizarEnlaceWhatsapp(id, nombre, data.puntos);
-            
-            // Bloqueamos el nombre tras el primer registro si era nuevo
             document.getElementById('clienteNombre').disabled = true;
 
             if(data.puntos === 1 && data.reinicio) {
@@ -169,17 +171,24 @@
         div.innerText = i;
         cont.appendChild(div);
     }
-// --- LÓGICA DE SEGURIDAD PARA CLIENTES ---
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('cliente') === 'si') {
-    // Escondemos el botón de sumar y el campo de correo para el cliente
-    document.getElementById('btnSumar').style.display = 'none';
-    document.querySelector('label[for="clienteCorreo"]')?.parentElement.style.display = 'none';
-    document.getElementById('clienteCorreo').parentElement.style.display = 'none';
-    
-    // Cambiamos el texto de bienvenida
-    document.querySelector('p').innerText = "Consulta tus sellos acumulados";
-}
+
+    // --- LÓGICA DE SEGURIDAD PARA CLIENTES ---
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('cliente') === 'si') {
+        // Escondemos botones administrativos
+        document.getElementById('btnSumar').style.display = 'none';
+        document.getElementById('btnClear').style.display = 'none';
+        
+        // Escondemos campos que el cliente no debe tocar
+        document.getElementById('grupoCorreo').style.display = 'none';
+        
+        // El nombre se vuelve solo de lectura
+        document.getElementById('clienteNombre').disabled = true;
+        document.getElementById('clienteNombre').placeholder = "Tu nombre aparecerá al buscar";
+        
+        // Cambiamos el texto
+        document.getElementById('subtitulo').innerText = "Consulta tus sellos acumulados 🍕";
+    }
 </script>
 </body>
 </html>
