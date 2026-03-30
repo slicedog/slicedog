@@ -80,6 +80,10 @@
     }
 
     function actualizarEnlaceWhatsapp(id, nombre, puntos) {
+        // Si es modo cliente, nunca mostramos el botón
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('cliente') === 'si') return;
+
         const btnWsp = document.getElementById('linkWhatsapp');
         if (!id || puntos === 0) { btnWsp.style.display = "none"; return; }
         const pz = "🍕";
@@ -175,18 +179,13 @@
     // --- LÓGICA DE SEGURIDAD PARA CLIENTES ---
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('cliente') === 'si') {
-        // Escondemos botones administrativos
         document.getElementById('btnSumar').style.display = 'none';
         document.getElementById('btnClear').style.display = 'none';
-        
-        // Escondemos campos que el cliente no debe tocar
         document.getElementById('grupoCorreo').style.display = 'none';
+        document.getElementById('linkWhatsapp').remove(); // ELIMINADO TOTALMENTE PARA EL CLIENTE
         
-        // El nombre se vuelve solo de lectura
         document.getElementById('clienteNombre').disabled = true;
         document.getElementById('clienteNombre').placeholder = "Tu nombre aparecerá al buscar";
-        
-        // Cambiamos el texto
         document.getElementById('subtitulo').innerText = "Consulta tus sellos acumulados 🍕";
     }
 </script>
