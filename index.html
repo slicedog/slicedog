@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Fidelidad 🍕</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 12px; color: #34495e; margin-bottom: 5px; font-weight: bold; }
+        .id-row { display: flex; gap: 10px; }
+        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
+        input:disabled { background-color: #f1f2f6; cursor: not-allowed; color: #7f8c8d; }
+        
+        .btn-search { width: 100px; background-color: #3498db; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .btn-main { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-clear { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 10px; font-weight: bold; }
+        
+        .btn-whatsapp { width: 100%; padding: 12px; background-color: #25d366; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; display: none; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        
+        .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 25px; }
+        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; transition: all 0.4s; }
+        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; border-style: solid; transform: scale(1.1); box-shadow: 0 0 10px rgba(241,196,15,0.5); }
+
+        @keyframes ganar {
+            0% { transform: scale(1.1); box-shadow: 0 0 10px #f1c40f; }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px #f39c12; }
+            100% { transform: scale(1.1); box-shadow: 0 0 10px #f1c40f; }
+        }
+        .winner { animation: ganar 1s infinite !important; background-color: #e74c3c !important; color: white !important; border: 2px solid #c0392b !important; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Slice Dog 🍕</h2>
+    <p>Programa de Recompensa</p>
+    
+    <div class="input-group">
+        <label>WHATSAPP / ID DEL CLIENTE</label>
+        <div class="id-row">
+            <input type="text" id="clienteId" placeholder="Ej: 56912345678">
+            <button class="btn-search" onclick="consultarPuntos()">🔍 VER</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>NOMBRE CLIENTE</label>
+        <input type="text" id="clienteNombre" placeholder="Nombre completo">
+    </div>
+
+    <div class="input-group">
+        <label>CORREO ELECTRÓNICO (Opcional)</label>
+        <input type="email" id="clienteCorreo" placeholder="ejemplo@correo.com">
+    </div>
+
+    <button class="btn-main" id="btnSumar" onclick="sumarPunto()">+ REGISTRAR PIZZA</button>
+    <button class="btn-clear" onclick="limpiarFormulario()">Limpiar / Nuevo Cliente</button>
+    
+    <a href="#" id="linkWhatsapp" class="btn-whatsapp" target="_blank">📲 ENVIAR RECORDATORIO</a>
+    
+    <div class="stamps" id="contenedorPuntos"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
+
+    function limpiarFormulario() {
+        document.getElementById('clienteId').value = "";
+        document.getElementById('clienteNombre').value = "";
+        document.getElementById('clienteNombre').disabled = false;
+        document.getElementById('clienteCorreo').value = "";
+        document.getElementById('linkWhatsapp').style.display = "none";
+        iluminar(0);
+    }
+
+    function actualizarEnlaceWhatsapp(id, nombre, puntos) {
+        const btnWsp = document.getElementById('linkWhatsapp');
+        if (!id || puntos === 0) { btnWsp.style.display = "none"; return; }
+        const pz = "🍕";
+        let mensaje = (puntos >= 10) 
+            ? `¡Hola ${nombre}! ${pz} Tienes 10 sellos acumulados. ¡Tu próxima Pizza es GRATIS! ${pz}`
+            : `¡Hola ${nombre}! ${pz} Ya llevas ${puntos} sellos. ¡Te faltan ${10-puntos} para tu Pizza GRATIS! ${pz}`;
+        btnWsp.href = `https://wa.me/${id}?text=${encodeURIComponent(mensaje)}`;
+        btnWsp.style.display = "flex";
+    }
+
+    function iluminar(puntos) {
+        const circulos = document.querySelectorAll('.stamp');
+        circulos.forEach((div, i) => {
+            div.classList.remove('active', 'winner');
+            if (i < puntos) {
+                div.classList.add('active');
+                if (i === 9) div.classList.add('winner');
+            }
+        });
+    }
+
+    async function consultarPuntos() {
+        const id = document.getElementById('clienteId').value.trim();
+        if (!id) return alert("Ingresa un número");
+        
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ id: id, accion: 'consultar' })
+            });
+            const data = await res.json();
+            
+            iluminar(data.puntos || 0);
+            if (data.existe) {
+                document.getElementById('clienteNombre').value = data.nombre;
+                document.getElementById('clienteNombre').disabled = true; // BLOQUEO PARA EVITAR MEZCLAS
+                document.getElementById('clienteCorreo').value = data.correo || "";
+                actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
+            } else {
+                alert("Cliente nuevo. Por favor ingresa el nombre.");
+                document.getElementById('clienteNombre').disabled = false;
+                document.getElementById('clienteNombre').value = "";
+                document.getElementById('clienteCorreo').value = "";
+            }
+        } catch (e) { alert("Error de conexión"); }
+    }
+
+    async function sumarPunto() {
+        const id = document.getElementById('clienteId').value.trim();
+        const nombre = document.getElementById('clienteNombre').value.trim();
+        const correo = document.getElementById('clienteCorreo').value.trim();
+        
+        if (!id || !nombre) return alert("ID y Nombre son obligatorios");
+
+        document.getElementById('btnSumar').innerText = "Registrando...";
+
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ id: id, nombre: nombre, correo: correo, accion: 'sumar' })
+            });
+            const data = await res.json();
+            
+            iluminar(data.puntos);
+            actualizarEnlaceWhatsapp(id, nombre, data.puntos);
+            
+            // Bloqueamos el nombre tras el primer registro si era nuevo
+            document.getElementById('clienteNombre').disabled = true;
+
+            if(data.puntos === 1 && data.reinicio) {
+                alert("¡Ciclo completado! Iniciando nueva tarjeta.");
+            } else if(data.puntos >= 10) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                alert("🎁 ¡PIZZA GRATIS LISTA!");
+            } else {
+                alert("Punto registrado correctamente.");
+            }
+        } catch (e) { alert("Error al sumar punto"); }
+        finally { document.getElementById('btnSumar').innerText = "+ REGISTRAR PIZZA"; }
+    }
+
+    // Crear sellos visuales
+    const cont = document.getElementById('contenedorPuntos');
+    for(let i=1; i<=10; i++) {
+        let div = document.createElement('div');
+        div.className = 'stamp';
+        div.innerText = i;
+        cont.appendChild(div);
+    }
+</script>
+</body>
+</html>
