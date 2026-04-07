@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Slice Dog POS - GitHub Test</title>
+    <style>
+        :root { --p: #e67e22; --s: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; margin: 0; height: 100vh; background: var(--bg); overflow: hidden; }
+        .panel-menu { width: 45%; padding: 20px; background: white; border-right: 1px solid #ddd; overflow-y: auto; }
+        .panel-cobro { width: 55%; padding: 20px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .card { background: var(--p); color: white; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; border: none; box-shadow: 0 4px 0 #d35400; }
+        .card:active { transform: translateY(2px); box-shadow: 0 2px 0 #d35400; }
+        .box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .status { font-size: 0.7em; padding: 5px; border-radius: 5px; float: right; }
+        .online { background: #d4edda; color: #155724; }
+        .offline { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="panel-menu">
+    <h2>🍕 Slice Dog <span id="status" class="status offline">SINCRONIZANDO...</span></h2>
+    <div class="grid">
+        <button class="card" onclick="add('Pizza Completa', 12000)">Pizza Completa<br>$12.000</button>
+        <button class="card" onclick="add('Pizza Miti y Mota', 13000)">Miti y Mota<br>$13.000</button>
+        <button class="card" onclick="add('Promo 2 Medianas', 18000)">Promo 2 Med<br>$18.000</button>
+        <button class="card" onclick="add('Bebida 1.5L', 2500)">Bebida 1.5L<br>$2.500</button>
+    </div>
+</div>
+
+<div class="panel-cobro">
+    <div class="box">
+        <h3>🛒 Pedido Actual</h3>
+        <div id="carrito" style="min-height: 50px;"></div>
+        <h1 id="total" style="text-align:center; font-size: 3em; color: var(--s);">$0</h1>
+        <button onclick="cobrar()" style="width:100%; padding: 20px; background: var(--s); color:white; border:none; border-radius:10px; font-size: 1.5em; font-weight:bold; cursor:pointer;">FINALIZAR</button>
+    </div>
+    <div class="box">
+        <h4>📜 Ventas en Memoria (LocalStorage)</h4>
+        <div id="historial"></div>
+    </div>
+</div>
+
+<script>
+    // URL de tu Dashboard (Asegúrate que sea la correcta)
+    const DASHBOARD_URL = "TU_URL_DE_GOOGLE_SCRIPT_AQUI";
+    let pedido = [], ventas = JSON.parse(localStorage.getItem('sd_v') || '[]');
+
+    function add(n, p) { pedido.push({n, p}); render(); }
+
+    function render() {
+        const c = document.getElementById('carrito');
+        c.innerHTML = pedido.map(i => `<div>${i.n} - $${i.p}</div>`).join("");
+        document.getElementById('total').innerText = "$" + pedido.reduce((a,b)=>a+b.p, 0);
+        
+        const h = document.getElementById('historial');
+        h.innerHTML = ventas.slice().reverse().map(v => `<div>${v.hora} - ${v.n} ($${v.p})</div>`).join("");
+    }
+
+    function cobrar() {
+        if(pedido.length === 0) return;
+        const hora = new Date().toLocaleTimeString();
+        pedido.forEach(item => {
+            ventas.push({ ...item, hora, fecha: new Date().toLocaleDateString('sv-SE') });
+        });
+        localStorage.setItem('sd_v', JSON.stringify(ventas));
+        pedido = [];
+        render();
+        sincronizarConGoogle();
+    }
+
+    async function sincronizarConGoogle() {
+        document.getElementById('status').innerText = "ENVIANDO...";
+        document.getElementById('status').className = "status offline";
+        
+        // Simulación de envío (esto no bloquea la pantalla)
+        try {
+            // Aquí iría el fetch a tu DASHBOARD_URL
+            console.log("Intentando sincronizar...");
+            // Si el envío es exitoso, podríamos marcar las ventas como 'enviadas'
+        } catch(e) { console.log("Fallo de red, se queda en LocalStorage"); }
+    }
+
+    // Al cargar, mostramos lo que hay en memoria de inmediato
+    window.onload = () => { render(); document.getElementById('status').innerText = "LISTO"; };
+</script>
+</body>
+</html>
