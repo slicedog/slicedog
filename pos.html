@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slice Dog POS - V6.6 (Conexión Google Sheets)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #e67e22; --secondary: #3498db; --dark: #2c3e50; --light: #f4f7f6; --success: #27ae60; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; margin: 0; height: 100vh; background: var(--light); overflow: hidden; }
+        .left-panel { width: 40%; padding: 20px; border-right: 1px solid #ddd; overflow-y: auto; background: white; }
+        .right-panel { width: 60%; padding: 20px; overflow-y: auto; background: var(--light); }
+        .barra-auditoria { background: var(--dark); color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+        .barra-auditoria input { padding: 5px; border-radius: 5px; border: none; width: 100%; }
+        #buscador { margin-bottom: 10px; padding: 12px; border: 2px solid var(--primary); border-radius: 10px; width: 100%; box-sizing: border-box; }
+        .grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .card-prod { background: var(--primary); color: white; border-radius: 10px; text-align: center; cursor: pointer; padding: 15px; font-weight: bold; min-height: 60px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .carrito-container { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .item-carrito { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 0.85em; }
+        .btn-tool { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; margin-right: 5px; }
+        .venta-item-hist { background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #ddd; position: relative; font-size: 0.8em; }
+        .btn-accion { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        input, select { padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; margin-bottom: 8px; }
+        .chart-container { background: white; border-radius: 10px; height: 140px; border: 1px solid #eee; margin-top: 10px; }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+        .hidden { display: none !important; }
+        .modal-config { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 400px; max-height: 80vh; overflow-y: auto; }
+        .prod-admin-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .split-pay-box { background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="modalApertura" class="overlay hidden">
+    <div style="background: white; padding: 30px; border-radius: 15px; width: 320px; text-align: center;">
+        <h2>🚀 Iniciar Turno</h2>
+        <input type="number" id="montoInicialInput" value="0" style="text-align: center; font-size: 1.5em;">
+        <button class="btn-accion" id="btnAbrirCaja" style="background: var(--success); color: white;">ABRIR CAJA</button>
+    </div>
+</div>
+
+<div id="modalAdmin" class="modal-config">
+    <div class="modal-content">
+        <h3>⚙️ Gestionar Productos</h3>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <p style="margin-top:0; font-weight:bold; font-size:0.8em; color:var(--dark);">AGREGAR NUEVO:</p>
+            <input type="text" id="nuevoNombre" placeholder="Nombre">
+            <input type="number" id="nuevoPrecio" placeholder="Precio ($)">
+            <input type="text" id="nuevaCategoria" list="listaCategorias" placeholder="Categoría">
+            <datalist id="listaCategorias"></datalist>
+            <button class="btn-accion" id="btnGuardarProducto" style="background: var(--success); color: white;">💾 GUARDAR</button>
+        </div>
+        <p style="font-weight:bold; font-size:0.8em; color:var(--dark);">LISTADO ACTUAL:</p>
+        <div id="listaAdminProductos"></div>
+        <button onclick="cerrarModal()" style="width: 100%; background: none; border: none; color: #666; margin-top: 20px; cursor: pointer;">Cerrar</button>
+    </div>
+</div>
+
+<div class="left-panel">
+    <h2>🍕 Slice Dog</h2>
+    <button onclick="abrirModal()" class="btn-accion" style="background: var(--dark); color: white; margin-bottom: 15px; font-size: 0.8em;">⚙️ CONFIGURAR PRODUCTOS</button>
+    <input type="text" id="buscador" placeholder="🔍 BUSCAR PRODUCTO...">
+    <div id="catBar" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;"></div>
+    <div class="grid-productos" id="resultados"></div>
+</div>
+
+<div class="right-panel">
+    <div class="barra-auditoria">
+        <div><label style="font-size:0.7em">DESDE:</label><input type="date" id="fechaDesde"></div>
+        <div><label style="font-size:0.7em">HASTA:</label><input type="date" id="fechaHasta"></div>
+        <button id="btnConsultar" style="background: var(--primary); border:none; color:white; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">CONSULTAR</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px;">
+        <div class="carrito-container">
+            <h3>🛒 Pedido</h3>
+            <div id="listaCarrito" style="max-height: 180px; overflow-y: auto;"></div>
+            <h1 id="totalCarrito" style="text-align: center; color: var(--success); font-size: 2.5em; margin: 10px 0;">$0</h1>
+            
+            <select id="metodoPago" onchange="toggleSplitPay()">
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Débito">💳 Débito</option>
+                <option value="Crédito">💳 Crédito</option>
+                <option value="Transferencia">📲 Transferencia</option>
+                <option value="UberEats">🛵 UberEats</option>
+                <option value="Múltiple">🔄 Múltiple (Mix)</option>
+            </select>
+
+            <div id="boxSplitPay" class="split-pay-box hidden">
+                <label style="font-size: 0.75em; font-weight: bold;">MONTO EFECTIVO:</label>
+                <input type="number" id="splitEfectivo" placeholder="Ej: 5000" oninput="calcSplit()">
+                <label style="font-size: 0.75em; font-weight: bold;">MONTO TARJETA/OTRO:</label>
+                <input type="number" id="splitOtro" readonly style="background: #eee;">
+            </div>
+
+            <input type="number" id="pagaCon" placeholder="Paga con..." style="text-align: center; font-size: 1.2em;">
+            <div id="vueltoResultado" style="text-align:center; font-weight:bold; color:var(--primary); margin-bottom:10px;">Vuelto: $0</div>
+            
+            <button class="btn-accion" id="btnCobrar" style="background: var(--success); color: white; height: 50px; font-size: 1.2em;">💰 FINALIZAR VENTA</button>
+        </div>
+
+        <div class="carrito-container">
+            <h3 style="margin:0; display: flex; align-items: center; gap: 8px;">📊 Resumen</h3>
+            <div style="background: var(--primary); color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0 5px 0;">
+                <span style="font-size: 0.8em; opacity: 0.9; font-weight: bold;">VENTA TOTAL DEL DÍA</span><br>
+                <b id="statTotal" style="font-size: 2.5em; display: block; line-height: 1.1;">$0</b>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div style="background: #eee; padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 0.7em; color: #666; font-weight: bold;">EFECTIVO EN CAJA</span><br>
+                    <b id="displayEfe" style="font-size: 1.3em;">$0</b>
+                </div>
+                <div style="background: var(--secondary); color: white; padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 0.7em; opacity: 0.9; font-weight: bold;">TICKETS</span><br>
+                    <b id="statTickets" style="font-size: 1.3em;">0</b>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnExcel" style="flex: 1; background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">💾 EXCEL</button>
+                <button id="btnCorteCaja" style="flex: 1; background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">🔒 CIERRE</button>
+            </div>
+            <div class="chart-container"><canvas id="graficoVentas"></canvas></div>
+            <div class="chart-container"><canvas id="chartTop"></canvas></div>
+        </div>
+    </div>
+    <h4>📈 Historial de Hoy</h4>
+    <div id="historialVentas" style="max-height: 250px; overflow-y: auto;"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyCocKSyY7NUDykwsdq1QC12MCH_vfD6MCw", authDomain: "pizzeria-pro.firebaseapp.com", projectId: "pizzeria-pro", storageBucket: "pizzeria-pro.firebasestorage.app", messagingSenderId: "333460747299", appId: "1:333460747299:web:c7f181f323a4d51f94ad96" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let productos = [], pedido = [], chartVentas = null, chartTop = null, ventasActuales = [];
+    let montoInicial = 0;
+    const fM = (n) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n);
+
+    const getFechaChile = () => new Date().toLocaleDateString('sv-SE');
+
+    window.toggleSplitPay = () => {
+        const isSplit = document.getElementById("metodoPago").value === "Múltiple";
+        document.getElementById("boxSplitPay").classList.toggle("hidden", !isSplit);
+        if(isSplit) calcSplit();
+    };
+
+    window.calcSplit = () => {
+        const total = pedido.reduce((acc, p) => acc + (p.precio * p.cant), 0);
+        const efe = parseFloat(document.getElementById("splitEfectivo").value) || 0;
+        document.getElementById("splitOtro").value = Math.max(0, total - efe);
+    };
+
+    window.abrirModal = () => { renderAdminList(); document.getElementById('modalAdmin').style.display = 'flex'; };
+    window.cerrarModal = () => document.getElementById('modalAdmin').style.display = 'none';
+
+    async function init() {
+        const hoy = getFechaChile();
+        document.getElementById("fechaDesde").value = hoy;
+        document.getElementById("fechaHasta").value = hoy;
+        const sesion = localStorage.getItem("sliceDog_turno_activo");
+        if (sesion) {
+            montoInicial = JSON.parse(sesion).monto;
+            await cargarMenu();
+            await buscarVentasRango();
+        } else {
+            document.getElementById("modalApertura").classList.remove("hidden");
+        }
+    }
+
+    document.getElementById("btnAbrirCaja").onclick = () => {
+        const m = parseFloat(document.getElementById("montoInicialInput").value) || 0;
+        localStorage.setItem("sliceDog_turno_activo", JSON.stringify({ monto: m, timestamp: Date.now() }));
+        location.reload();
+    };
+
+    async function cargarMenu() {
+        const snap = await getDocs(collection(db, "productos"));
+        productos = []; let cats = new Set();
+        snap.forEach(d => {
+            const data = d.data(); productos.push({id: d.id, ...data});
+            if(data.categoria) cats.add(data.categoria.toUpperCase());
+        });
+        const bar = document.getElementById("catBar"); 
+        bar.innerHTML = `<button onclick="filtrarCat('TODOS')" style="padding:5px 10px; border-radius:15px; border:1px solid #ddd; background:white; cursor:pointer; font-size:0.7em; margin-right:5px;">TODOS</button>`;
+        Array.from(cats).sort().forEach(c => {
+            const btn = document.createElement('button');
+            btn.innerText = c;
+            btn.style = "padding:5px 10px; border-radius:15px; border:1px solid #ddd; background:white; cursor:pointer; font-size:0.7em; margin-right:5px;";
+            btn.onclick = () => filtrarCat(c);
+            bar.appendChild(btn);
+        });
+        renderMenu();
+    }
+
+    function renderAdminList() {
+        const container = document.getElementById("listaAdminProductos");
+        container.innerHTML = "";
+        productos.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'prod-admin-item';
+            item.innerHTML = `<span><b>${p.nombre}</b> ($${p.precio})</span>
+                <button onclick="borrarProducto('${p.id}', '${p.nombre}')" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">🗑️</button>`;
+            container.appendChild(item);
+        });
+    }
+
+    window.borrarProducto = async (id, nombre) => {
+        if(confirm(`¿Eliminar "${nombre}"?`)) { await deleteDoc(doc(db, "productos", id)); await cargarMenu(); renderAdminList(); }
+    };
+
+    window.filtrarCat = (c) => renderMenu(c);
+    function renderMenu(cat = "TODOS") {
+        const res = document.getElementById("resultados"); res.innerHTML = "";
+        const busca = document.getElementById("buscador").value.toLowerCase();
+        productos.filter(p => (cat === "TODOS" || p.categoria === cat) && p.nombre.toLowerCase().includes(busca))
+        .forEach(p => {
+            const card = document.createElement('div'); card.className = 'card-prod';
+            card.innerHTML = `${p.nombre}<br><small>$${p.precio}</small>`;
+            card.onclick = () => addToCart(p.nombre, p.precio);
+            res.appendChild(card);
+        });
+    }
+
+    window.addToCart = (nombre, precio) => { 
+        const existe = pedido.findIndex(item => item.nombre === nombre && item.nota === "");
+        if(existe !== -1) pedido[existe].cant++;
+        else pedido.push({ nombre, precio, cant: 1, nota: "" }); 
+        renderCarrito(); 
+    };
+
+    function renderCarrito() {
+        const lista = document.getElementById("listaCarrito"); lista.innerHTML = "";
+        let total = pedido.reduce((acc, p) => acc + (p.precio * p.cant), 0);
+        pedido.forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = 'item-carrito';
+            div.innerHTML = `<b>${p.cant}x ${p.nombre}</b> - $${(p.precio * p.cant).toLocaleString('es-CL')}
+                <div style="margin-top:5px;">
+                    <button class="btn-tool" onclick="editPrice(${i})">✏️ $</button>
+                    <button class="btn-tool" onclick="addNote(${i})">📝 Nota</button>
+                    <button onclick="removeItem(${i})" style="color:red; border:none; background:none; cursor:pointer; float:right;">✕</button>
+                </div>
+                ${p.nota ? `<div style="font-size:0.8em; color:blue;">Obs: ${p.nota}</div>` : ''}`;
+            lista.appendChild(div);
+        });
+        document.getElementById("totalCarrito").innerText = fM(total);
+        actualizarVuelto();
+        if(document.getElementById("metodoPago").value === "Múltiple") calcSplit();
+    }
+
+    window.actualizarVuelto = () => {
+        const t = parseInt(document.getElementById("totalCarrito").innerText.replace(/[^0-9]/g, '')) || 0;
+        const p = parseFloat(document.getElementById("pagaCon").value) || 0;
+        document.getElementById("vueltoResultado").innerText = `Vuelto: ${fM(Math.max(0, p - t))}`;
+    };
+    document.getElementById("pagaCon").oninput = window.actualizarVuelto;
+
+    window.editPrice = (i) => { const n = prompt("Precio:", pedido[i].precio); if(n) { pedido[i].precio = parseInt(n); renderCarrito(); } };
+    window.addNote = (i) => { const n = prompt("Nota:", pedido[i].nota); if(n !== null) { pedido[i].nota = n; renderCarrito(); } };
+    window.removeItem = (i) => { pedido.splice(i, 1); renderCarrito(); };
+
+    document.getElementById("btnCobrar").onclick = async () => {
+        if(pedido.length === 0) return;
+        const totalV = pedido.reduce((acc, p) => acc + (p.precio*p.cant), 0);
+        const metodo = document.getElementById("metodoPago").value;
+        let efeReal = 0, otroReal = 0;
+
+        if(metodo === "Múltiple") {
+            efeReal = parseFloat(document.getElementById("splitEfectivo").value) || 0;
+            otroReal = parseFloat(document.getElementById("splitOtro").value) || 0;
+            if(efeReal + otroReal !== totalV) { alert("Los montos no coinciden con el total"); return; }
+        } else if(metodo === "Efectivo") {
+            efeReal = totalV;
+        } else {
+            otroReal = totalV;
+        }
+
+        const venta = { 
+            fechaSolo: getFechaChile(), 
+            horaSolo: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), 
+            total: totalV,
+            montoEfectivo: efeReal,
+            montoOtro: otroReal,
+            metodo: metodo, 
+            items: [...pedido], 
+            timestamp: Timestamp.now() 
+        };
+
+        // --- INICIO INTEGRACIÓN GOOGLE SHEETS ---
+        const URL_GOOGLE = "https://script.google.com/macros/s/AKfycbyHrmqTS9AcUCc4jYzUrs4Hq9hnSm1UTj-dFU8rhtM9iXGZf7FyaSnNNGnz8PzT01rB/exec";
+        const datosExcel = {
+            fecha: venta.fechaSolo,
+            dia: new Date().toLocaleDateString('es-CL', {weekday: 'long'}),
+            efectivo: efeReal,
+            debito: metodo === "Débito" ? totalV : (metodo === "Múltiple" ? otroReal : 0),
+            credito: metodo === "Crédito" ? totalV : 0,
+            transf: metodo === "Transferencia" ? totalV : 0,
+            uber: metodo === "UberEats" ? totalV : 0,
+            n_pedidos: 1
+        };
+
+        fetch(URL_GOOGLE, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datosExcel)
+        });
+        // --- FIN INTEGRACIÓN GOOGLE SHEETS ---
+        
+        await addDoc(collection(db, "ventas"), venta);
+        imprimirTicket(venta); 
+        pedido = []; 
+        document.getElementById("pagaCon").value = "";
+        document.getElementById("splitEfectivo").value = "";
+        document.getElementById("metodoPago").value = "Efectivo";
+        toggleSplitPay();
+        renderCarrito(); 
+        await buscarVentasRango(); 
+    };
+
+    function imprimirTicket(v) {
+        const win = window.open('', '', 'width=400,height=600');
+        win.document.write(`<html><head><style>@page { margin: 0; size: 80mm auto; } body { font-family: 'Courier New'; width: 80mm; padding: 5mm; font-weight: bold; } .text-center { text-align: center; } .linea { border-top: 2px dashed black; margin: 6px 0; } .item-row { display: flex; justify-content: space-between; } .total-row { font-size: 18px; border-top: 1px solid black; padding-top: 5px; display: flex; justify-content: space-between; }</style></head>
+            <body><div class="text-center"><b style="font-size: 22px;">SLICE DOG</b><br>Fecha: ${v.fechaSolo} ${v.horaSolo}</div><div class="linea"></div>
+            ${v.items.map(i => `<div class="item-row"><span>${i.cant}x ${i.nombre}</span><span>$${(i.precio * i.cant).toLocaleString('es-CL')}</span></div>`).join('')}
+            <div class="linea"></div><div class="total-row"><span>TOTAL</span><span>$${v.total.toLocaleString('es-CL')}</span></div>
+            <div style="margin-top: 10px; font-size: 12px;">Pago: ${v.metodo}${v.metodo==='Múltiple' ? ` (Efe: $${v.montoEfectivo} / Otros: $${v.montoOtro})` : ''}</div></body></html>`);
+        win.document.close();
+        setTimeout(() => { win.print(); win.close(); }, 350);
+    }
+
+    window.buscarVentasRango = async () => {
+        const fDesde = document.getElementById("fechaDesde").value;
+        const fHasta = document.getElementById("fechaHasta").value;
+        const inicio = new Date(fDesde + "T00:00:00");
+        const fin = new Date(fHasta + "T23:59:59");
+        
+        const q = query(collection(db, "ventas"), where("timestamp", ">=", Timestamp.fromDate(inicio)), where("timestamp", "<=", Timestamp.fromDate(fin)), orderBy("timestamp", "desc"));
+        const snap = await getDocs(q);
+        
+        let tTotal = 0, tEfe = 0, dGraf = {}, dTop = {}, contadorTickets = 0;
+        ventasActuales = [];
+        const hist = document.getElementById("historialVentas"); hist.innerHTML = "";
+        
+        snap.forEach(d => {
+            const v = d.data(); ventasActuales.push(v); contadorTickets++;
+            tTotal += v.total; 
+            tEfe += (v.montoEfectivo || (v.metodo === "Efectivo" ? v.total : 0));
+            const h = v.timestamp.toDate().getHours() + ":00"; 
+            dGraf[h] = (dGraf[h] || 0) + v.total;
+            v.items.forEach(i => { dTop[i.nombre] = (dTop[i.nombre] || 0) + i.cant; });
+            const item = document.createElement('div'); item.className = 'venta-item-hist';
+            item.innerHTML = `<b>${v.horaSolo}</b> - ${fM(v.total)} (${v.metodo})<br><small>${v.items.map(i=>`${i.cant}x ${i.nombre}`).join(', ')}</small>`;
+            hist.appendChild(item);
+        });
+        
+        document.getElementById("statTotal").innerText = fM(tTotal);
+        document.getElementById("displayEfe").innerText = fM(tEfe + montoInicial);
+        document.getElementById("statTickets").innerText = contadorTickets;
+        updateCharts(dGraf, dTop);
+    };
+
+    function updateCharts(graf, top) {
+        const ctxV = document.getElementById('graficoVentas').getContext('2d');
+        if(chartVentas) chartVentas.destroy();
+        chartVentas = new Chart(ctxV, { type: 'line', data: { labels: Object.keys(graf).sort(), datasets: [{ label: 'Ventas', data: Object.keys(graf).sort().map(l=>graf[l]), borderColor: '#e67e22', fill: true }] }, options: { responsive: true, maintainAspectRatio: false } });
+        const ctxT = document.getElementById('chartTop').getContext('2d');
+        const sorted = Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        if(chartTop) chartTop.destroy();
+        chartTop = new Chart(ctxT, { type: 'bar', data: { labels: sorted.map(x=>x[0]), datasets: [{ label: 'Top 5', data: sorted.map(x=>x[1]), backgroundColor: '#3498db' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } });
+    }
+
+    document.getElementById("btnExcel").onclick = () => {
+        let rows = ventasActuales.flatMap(v => v.items.map(i => ({ Fecha: v.fechaSolo, Hora: v.horaSolo, Producto: i.nombre, Cant: i.cant, Total_Venta: v.total, Metodo: v.metodo })));
+        const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ventas"); XLSX.writeFile(wb, `Reporte_SliceDog.xlsx`);
+    };
+
+    document.getElementById("btnGuardarProducto").onclick = async () => {
+        const n = document.getElementById("nuevoNombre").value, p = parseInt(document.getElementById("nuevoPrecio").value), c = document.getElementById("nuevaCategoria").value.toUpperCase();
+        if(n && p) { await addDoc(collection(db, "productos"), {nombre:n, precio:p, categoria:c}); document.getElementById("nuevoNombre").value = ""; await cargarMenu(); renderAdminList(); }
+    };
+    document.getElementById("btnCorteCaja").onclick = () => { if(confirm("¿Cerrar turno?")) { localStorage.removeItem("sliceDog_turno_activo"); location.reload(); }};
+    document.getElementById("buscador").onkeyup = () => renderMenu();
+    document.getElementById("btnConsultar").onclick = window.buscarVentasRango;
+    init();
+</script>
+</body>
+</html>
