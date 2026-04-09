@@ -3,23 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Club Slice Dog 🍕</title>
+    <title>Recompensas Slice Dog 🍕</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #2c3e50; margin-bottom: 5px; }
+        #subtitulo { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; font-size: 12px; color: #34495e; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn-main { width: 100%; padding: 15px; background-color: #e67e22; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
+        input:focus { border-color: #e67e22; outline: none; }
+        
+        /* Sección Legal */
+        .reglas-box { background: #fdfaf6; border: 1px solid #f3e5ab; padding: 15px; border-radius: 10px; font-size: 11px; color: #5d4037; text-align: left; height: 90px; overflow-y: scroll; margin-bottom: 10px; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 8px; text-align: left; font-size: 12px; margin-bottom: 20px; color: #2c3e50; }
+        
+        .btn-main { width: 100%; padding: 15px; background-color: #e67e22; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { background-color: #d35400; }
         .btn-main:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-        
-        /* Estilo para las bases legales */
-        .reglas-box { background: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 10px; font-size: 11px; color: #7f8c8d; text-align: left; height: 100px; overflow-y: scroll; margin-bottom: 10px; }
-        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; text-align: left; font-size: 12px; margin-bottom: 15px; }
-        
+
         .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 25px; }
-        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; }
-        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; }
+        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; font-size: 18px; transition: 0.4s; }
+        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; transform: scale(1.1); box-shadow: 0 4px 10px rgba(241,196,15,0.4); }
     </style>
 </head>
 <body>
@@ -28,58 +34,75 @@
     <h2 id="titulo">Slice Dog 🍕</h2>
     <p id="subtitulo">Cargando...</p>
 
-    <div id="formRegistro">
-        <div class="input-group">
-            <label>WHATSAPP (ID)</label>
-            <input type="text" id="clienteId" placeholder="Ej: 56912345678">
-        </div>
-        <div class="input-group">
-            <label>TU NOMBRE</label>
-            <input type="text" id="clienteNombre" placeholder="¿Cómo te llamamos?">
-        </div>
-
-        <div id="seccionLegal" style="display:none;">
-            <label>BASES DEL PROGRAMA</label>
-            <div class="reglas-box">
-                <strong>1. Premio:</strong> Completa 10 sellos y obtén una pizza de regalo.<br>
-                <strong>2. Condiciones:</strong> Válido solo para pizzas Medianas y Grandes.<br>
-                <strong>3. Vigencia:</strong> Los sellos expiran el 31 de diciembre de 2026.<br>
-                <strong>4. Privacidad:</strong> Tus datos se usarán solo para este programa.
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="aceptoBases" onchange="validarBoton()">
-                <span>He leído y acepto las bases y recibir mi primer sello de regalo.</span>
-            </div>
-        </div>
-
-        <button class="btn-main" id="btnAccion" onclick="procesar()">Consultar</button>
+    <div class="input-group">
+        <label>WHATSAPP (ID DEL CLIENTE)</label>
+        <input type="text" id="clienteId" placeholder="Ej: 56912345678">
     </div>
 
+    <div class="input-group" id="grupoNombre">
+        <label>NOMBRE DEL CLIENTE</label>
+        <input type="text" id="clienteNombre" placeholder="Ingresa nombre">
+    </div>
+
+    <div id="seccionLegal" style="display:none;">
+        <label>REGLAS DEL PROGRAMA</label>
+        <div class="reglas-box">
+            <strong>• Premio:</strong> Al completar 10 sellos obtienes una pizza de regalo.<br>
+            <strong>• Aplicación:</strong> Válido exclusivamente para pizzas Medianas y Grandes.<br>
+            <strong>• Canje:</strong> No acumulable con otras promociones.<br>
+            <strong>• Vigencia:</strong> Los puntos acumulados son válidos hasta el 31 de diciembre de 2026.
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="aceptoBases" onchange="validarBoton()">
+            <span>Acepto las bases del programa y deseo recibir mi primer sello de regalo.</span>
+        </div>
+    </div>
+
+    <button class="btn-main" id="btnAccion" onclick="procesar()">Ver mis sellos</button>
+    
     <div class="stamps" id="contenedorPuntos"></div>
 </div>
 
 <script>
+    // URL DE TU SCRIPT DE GOOGLE (Asegúrate que sea la correcta)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
+    
     const urlParams = new URLSearchParams(window.location.search);
     const MODO = urlParams.get('registro') === 'nuevo' ? 'REGISTRO' : (urlParams.get('admin') === 'dog2024' ? 'ADMIN' : 'CLIENTE');
 
-    // Configurar la vista según el modo
+    // Configuración visual por modo
+    const subtitulo = document.getElementById('subtitulo');
+    const btn = document.getElementById('btnAccion');
+    const legal = document.getElementById('seccionLegal');
+
     if (MODO === 'REGISTRO') {
-        document.getElementById('subtitulo').innerText = "¡Únete y gana tu primer sello! 🎁";
-        document.getElementById('btnAccion').innerText = "Unirme al Club";
-        document.getElementById('btnAccion').disabled = true;
-        document.getElementById('seccionLegal').style.display = "block";
+        subtitulo.innerText = "¡Regístrate y recibe un sello de regalo! 🎁";
+        btn.innerText = "Unirme al Club";
+        btn.disabled = true;
+        legal.style.display = "block";
     } else if (MODO === 'ADMIN') {
-        document.getElementById('subtitulo').innerText = "Panel de Administración 🛠️";
-        document.getElementById('btnAccion').innerText = "Registrar Pizza (+1)";
+        subtitulo.innerText = "Panel Administrativo 🛠️";
+        btn.innerText = "Registrar Pizza (+1)";
     } else {
-        document.getElementById('subtitulo').innerText = "Consulta tus sellos 🍕";
-        document.getElementById('btnAccion').innerText = "Ver mis sellos";
+        subtitulo.innerText = "Consulta tus sellos acumulados 🍕";
+        btn.innerText = "Ver mis sellos";
+        document.getElementById('clienteNombre').disabled = true;
     }
 
     function validarBoton() {
         if (MODO === 'REGISTRO') {
-            document.getElementById('btnAccion').disabled = !document.getElementById('aceptoBases').checked;
+            btn.disabled = !document.getElementById('aceptoBases').checked;
+        }
+    }
+
+    function iluminar(puntos) {
+        const cont = document.getElementById('contenedorPuntos');
+        cont.innerHTML = "";
+        for(let i=1; i<=10; i++) {
+            let div = document.createElement('div');
+            div.className = i <= puntos ? 'stamp active' : 'stamp';
+            div.innerText = i;
+            cont.appendChild(div);
         }
     }
 
@@ -87,15 +110,16 @@
         const id = document.getElementById('clienteId').value.trim();
         const nombre = document.getElementById('clienteNombre').value.trim();
         
-        if (!id) return alert("Ingresa tu número");
+        if (!id) return alert("Por favor, ingresa el número de WhatsApp.");
 
-        const btn = document.getElementById('btnAccion');
-        btn.innerText = "Procesando...";
+        const textoOriginal = btn.innerText;
+        btn.innerText = "Conectando...";
         btn.disabled = true;
 
         let payload = { id: id, nombre: nombre };
         
         if (MODO === 'REGISTRO') {
+            if (!nombre) { alert("Necesitamos tu nombre para el registro."); btn.disabled = false; btn.innerText = textoOriginal; return; }
             payload.accion = 'registrar_nuevo';
         } else if (MODO === 'ADMIN') {
             payload.accion = 'sumar';
@@ -111,28 +135,20 @@
             if (data.error) {
                 alert(data.error);
             } else {
-                if (MODO === 'REGISTRO') alert("¡Bienvenido! Has ganado tu primer sello.");
+                if (MODO === 'REGISTRO') alert("¡Bienvenido a Slice Dog! Ya tienes tu primer sello.");
                 iluminar(data.puntos || 0);
                 if (data.nombre) document.getElementById('clienteNombre').value = data.nombre;
             }
-        } catch (e) { alert("Error de conexión"); }
-        finally { 
-            btn.innerText = MODO === 'REGISTRO' ? "Unirme al Club" : (MODO === 'ADMIN' ? "Registrar Pizza" : "Ver mis sellos");
-            btn.disabled = (MODO === 'REGISTRO' && !document.getElementById('aceptoBases').checked);
+        } catch (e) {
+            alert("Error de conexión. Verifica la conexión a internet o la configuración del script.");
+        } finally {
+            btn.innerText = textoOriginal;
+            validarBoton();
+            if (MODO !== 'REGISTRO') btn.disabled = false;
         }
     }
 
-    function iluminar(puntos) {
-        const cont = document.getElementById('contenedorPuntos');
-        cont.innerHTML = "";
-        for(let i=1; i<=10; i++) {
-            let div = document.createElement('div');
-            div.className = i <= puntos ? 'stamp active' : 'stamp';
-            div.innerText = i;
-            cont.appendChild(div);
-        }
-    }
-    iluminar(0);
+    iluminar(0); // Iniciar vacíos
 </script>
 </body>
 </html>
