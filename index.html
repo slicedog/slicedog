@@ -9,105 +9,91 @@
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         .input-group { margin-bottom: 12px; text-align: left; }
         label { display: block; font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: 4px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn-main { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .btn-main:disabled { background: #bdc3c7; cursor: not-allowed; }
-        
-        .btn-ws { display: none; background: #25d366; margin-top: 15px; text-decoration: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; font-size: 14px; align-items: center; justify-content: center; gap: 8px; border: none; width: 100%; box-sizing: border-box; }
-
-        .reglas-box { background: #fffaf0; border: 1px solid #f3e5ab; padding: 12px; border-radius: 10px; font-size: 11px; text-align: left; height: 80px; overflow-y: scroll; margin-bottom: 10px; color: #5d4037; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main:disabled { background: #bdc3c7; }
         .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 25px; }
-        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; font-size: 18px; transition: 0.3s; }
-        .active { background: #f1c40f; color: white; border: 2px solid #f39c12; transform: scale(1.1); box-shadow: 0 4px 10px rgba(241,196,15,0.3); }
+        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; }
+        .active { background: #f1c40f; color: white; border: 2px solid #f39c12; }
+        .btn-ws { display: none; background: #25d366; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
-
 <div class="card">
     <h2 id="titulo">Slice Dog 🍕</h2>
-    <p id="subtitulo">Cargando sistema...</p>
-
+    <p id="subtitulo">Cargando...</p>
     <div class="input-group">
-        <label>WHATSAPP (ID)</label>
+        <label>WHATSAPP</label>
         <input type="text" id="clienteId" placeholder="Ej: 56912345678">
     </div>
-
     <div class="input-group" id="grupoNombre">
-        <label>NOMBRE COMPLETO</label>
+        <label>NOMBRE</label>
         <input type="text" id="clienteNombre" placeholder="Tu nombre">
     </div>
-
     <div class="input-group" id="grupoCorreo" style="display:none;">
-        <label>CORREO ELECTRÓNICO (OBLIGATORIO)</label>
+        <label>CORREO (OBLIGATORIO)</label>
         <input type="email" id="clienteCorreo" placeholder="tu@email.com">
     </div>
-
-    <div id="seccionLegal" style="display:none;">
-        <div class="reglas-box">
-            <strong>• Premio:</strong> 10 sellos = 1 pizza de regalo.<br>
-            <strong>• Aplica:</strong> Solo pizzas Medianas y Grandes.<br>
-            <strong>• Vigencia:</strong> Los puntos expiran el 31/12/2026.
-        </div>
-        <label style="display: flex; gap: 8px; align-items: flex-start; text-align: left; font-size: 12px; cursor: pointer;">
-            <input type="checkbox" id="aceptoBases" onchange="validar()"> Acepto las reglas y quiero mi sello de regalo.
-        </label>
+    <div id="seccionLegal" style="display:none; font-size: 12px; text-align: left; margin-bottom: 10px;">
+        <p>• 10 sellos = Pizza Gratis (Mediana/Grande).<br>• Expira: 31/12/2026.</p>
+        <input type="checkbox" id="aceptoBases" onchange="validar()"> Acepto las reglas.
     </div>
-
     <button class="btn-main" id="btnAccion" onclick="procesar()">Consultar</button>
-    
-    <a href="#" id="btnNotificar" class="btn-ws" target="_blank">
-        📲 NOTIFICAR: ¡Falta solo 1!
-    </a>
-
+    <a href="#" id="btnNotificar" class="btn-ws" target="_blank">📲 NOTIFICAR: ¡Falta solo 1!</a>
     <div class="stamps" id="contenedorPuntos"></div>
 </div>
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
-    
     const urlParams = new URLSearchParams(window.location.search);
     const MODO = urlParams.get('registro') === 'nuevo' ? 'REG' : (urlParams.get('admin') === 'dog2024' ? 'ADM' : 'CLI');
 
-    // Configuración inicial por modo
-    const subtitulo = document.getElementById('subtitulo');
-    const btn = document.getElementById('btnAccion');
-    const campoNombre = document.getElementById('clienteNombre');
-
     if (MODO === 'REG') {
-        subtitulo.innerText = "¡Únete y gana un sello de regalo! 🎁";
-        btn.innerText = "Unirme al Club";
-        btn.disabled = true;
+        document.getElementById('subtitulo').innerText = "¡Regístrate y gana 1 sello! 🎁";
+        document.getElementById('btnAccion').innerText = "Unirme";
         document.getElementById('grupoCorreo').style.display = "block";
         document.getElementById('seccionLegal').style.display = "block";
+        document.getElementById('btnAccion').disabled = true;
     } else if (MODO === 'ADM') {
-        subtitulo.innerText = "Panel Administrativo 🛠️";
-        btn.innerText = "Registrar Pizza (+1)";
+        document.getElementById('subtitulo').innerText = "Panel Admin 🛠️";
+        document.getElementById('btnAccion').innerText = "Sumar Sello (+1)";
         document.getElementById('grupoCorreo').style.display = "block";
     } else {
-        subtitulo.innerText = "Consulta tus sellos acumulados 🍕";
-        btn.innerText = "Ver mis sellos";
-        campoNombre.disabled = true;
-        campoNombre.placeholder = "Tu nombre aparecerá al buscar";
+        document.getElementById('subtitulo').innerText = "Consulta tus sellos 🍕";
+        document.getElementById('clienteNombre').disabled = true;
     }
 
-    function validar() {
-        if (MODO === 'REG') btn.disabled = !document.getElementById('aceptoBases').checked;
-    }
+    function validar() { if (MODO === 'REG') document.getElementById('btnAccion').disabled = !document.getElementById('aceptoBases').checked; }
 
     async function procesar() {
         const id = document.getElementById('clienteId').value.trim();
-        const nom = campoNombre.value.trim();
+        const nom = document.getElementById('clienteNombre').value.trim();
         const cor = document.getElementById('clienteCorreo').value.trim();
-        const btnWS = document.getElementById('btnNotificar');
-
-        if (!id) return alert("Por favor, ingresa el número de WhatsApp.");
-        if (MODO === 'REG' && (!nom || !cor)) return alert("El nombre y correo son necesarios para el registro.");
-
-        const textoOriginal = btn.innerText;
+        if (!id) return alert("Ingresa el número.");
+        
+        const btn = document.getElementById('btnAccion');
         btn.innerText = "Conectando...";
         btn.disabled = true;
-        btnWS.style.display = "none";
 
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Prueba esto si sigue fallando la conexión
+                body: JSON.stringify({
+                    id: id, nombre: nom, correo: cor,
+                    accion: MODO === 'REG' ? 'registrar_nuevo' : (MODO === 'ADM' ? 'sumar' : 'consultar'),
+                    clave: MODO === 'ADM' ? 'dog2024' : ''
+                })
+            });
+            
+            // Nota: Con no-cors no podemos leer la respuesta JSON directamente por seguridad del navegador.
+            // Si el modo normal falla, intentaremos el fetch normal primero:
+            ejecutarFetchNormal(id, nom, cor, btn);
+            
+        } catch (e) { alert("Error de conexión"); btn.disabled = false; }
+    }
+
+    async function ejecutarFetchNormal(id, nom, cor, btn) {
         try {
             const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
@@ -118,29 +104,19 @@
                 })
             });
             const data = await res.json();
-            
-            if (data.error) {
-                alert(data.error);
-            } else {
+            if (data.error) alert(data.error);
+            else {
                 iluminar(data.puntos || 0);
-                if (data.nombre) campoNombre.value = data.nombre;
-
-                // Alerta inteligente de Sello 9 (Solo Admin)
+                if (data.nombre) document.getElementById('clienteNombre').value = data.nombre;
                 if (MODO === 'ADM' && data.puntos === 9) {
-                    const msg = `¡Hola ${data.nombre || ''}! 🍕 Soy de Slice Dog. ¡Te falta solo 1 SELLO para completar tu tarjeta y llevarte tu PIZZA GRATIS! ¡Te esperamos!`;
+                    const msg = `¡Hola! 🍕 Te falta solo 1 SELLO en Slice Dog para tu PIZZA GRATIS. ¡Te esperamos!`;
+                    const btnWS = document.getElementById('btnNotificar');
                     btnWS.href = `https://wa.me/${id}?text=${encodeURIComponent(msg)}`;
-                    btnWS.style.display = "flex";
+                    btnWS.style.display = "block";
                 }
-                
-                if (MODO === 'REG') alert("¡Bienvenido! Ya tienes tu primer sello en la tarjeta.");
             }
-        } catch (e) { 
-            alert("Error de conexión. Asegúrate de haber publicado la 'Nueva Versión' en Google Apps Script."); 
-        } finally { 
-            btn.innerText = textoOriginal; 
-            if (MODO !== 'REG') btn.disabled = false;
-            else validar();
-        }
+        } catch(e) { alert("Error de conexión. Revisa que el Script esté publicado como 'Cualquier persona'."); }
+        finally { btn.innerText = "Procesar"; btn.disabled = false; }
     }
 
     function iluminar(puntos) {
