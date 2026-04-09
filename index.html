@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recompensas Slice Dog 🍕</title>
+    <title>Club Slice Dog 🍕</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-size: 12px; color: #34495e; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .reglas-box { background: #fdfaf6; border: 1px solid #f3e5ab; padding: 15px; border-radius: 10px; font-size: 11px; color: #5d4037; text-align: left; height: 90px; overflow-y: scroll; margin-bottom: 10px; }
-        .checkbox-group { display: flex; align-items: flex-start; gap: 8px; text-align: left; font-size: 12px; margin-bottom: 20px; }
-        .btn-main { width: 100%; padding: 15px; background-color: #e67e22; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-main:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .input-group { margin-bottom: 12px; text-align: left; }
+        label { display: block; font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: 4px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main:disabled { background: #bdc3c7; }
+        
+        /* Botón de WhatsApp especial */
+        .btn-ws { display: none; background: #25d366; margin-top: 15px; text-decoration: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; font-size: 14px; align-items: center; justify-content: center; gap: 8px; }
+
+        .reglas-box { background: #fffaf0; border: 1px solid #f3e5ab; padding: 12px; border-radius: 10px; font-size: 11px; text-align: left; height: 80px; overflow-y: scroll; margin-bottom: 10px; }
         .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 25px; }
-        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; transition: 0.4s; }
-        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; }
+        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; }
+        .active { background: #f1c40f; color: white; border: 2px solid #f39c12; transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -26,107 +29,103 @@
     <p id="subtitulo">Cargando...</p>
 
     <div class="input-group">
-        <label>WHATSAPP (ID)</label>
+        <label>WHATSAPP</label>
         <input type="text" id="clienteId" placeholder="Ej: 56912345678">
     </div>
 
     <div class="input-group" id="grupoNombre">
-        <label>TU NOMBRE</label>
-        <input type="text" id="clienteNombre" placeholder="¿Cómo te llamamos?">
+        <label>NOMBRE</label>
+        <input type="text" id="clienteNombre" placeholder="Nombre del cliente">
     </div>
 
-    <div class="input-group" id="grupoCorreo" style="display: none;">
-        <label>CORREO ELECTRÓNICO (OBLIGATORIO)</label>
+    <div class="input-group" id="grupoCorreo" style="display:none;">
+        <label>CORREO ELECTRÓNICO</label>
         <input type="email" id="clienteCorreo" placeholder="ejemplo@correo.com">
     </div>
 
     <div id="seccionLegal" style="display:none;">
-        <label>BASES DEL PROGRAMA</label>
         <div class="reglas-box">
-            <strong>• Premio:</strong> 10 sellos = 1 pizza de regalo.<br>
-            <strong>• Aplica para:</strong> Pizzas Medianas y Grandes.<br>
-            <strong>• Vigencia:</strong> Hasta el 31 de diciembre de 2026.
+            <strong>Reglas:</strong> 10 sellos = 1 pizza de regalo. Válido en pizzas Medianas y Grandes. Expira el 31/12/2026.
         </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="aceptoBases" onchange="validarBoton()">
-            <span>Acepto las bases y deseo mi primer sello gratis.</span>
-        </div>
+        <label style="display: flex; gap: 8px; align-items: center;">
+            <input type="checkbox" id="aceptoBases" onchange="validar()"> Acepto las reglas.
+        </label>
     </div>
 
-    <button class="btn-main" id="btnAccion" onclick="procesar()">Ver mis sellos</button>
+    <button class="btn-main" id="btnAccion" onclick="procesar()">Consultar</button>
+    
+    <a href="#" id="btnNotificar" class="btn-ws" target="_blank">
+        📲 NOTIFICAR: ¡Falta solo 1!
+    </a>
+
     <div class="stamps" id="contenedorPuntos"></div>
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
+    const WEB_APP_URL = "TU_URL_DE_GOOGLE_AQUÍ"; // REEMPLAZA ESTO
     const urlParams = new URLSearchParams(window.location.search);
-    const MODO = urlParams.get('registro') === 'nuevo' ? 'REGISTRO' : (urlParams.get('admin') === 'dog2024' ? 'ADMIN' : 'CLIENTE');
+    const MODO = urlParams.get('registro') === 'nuevo' ? 'REG' : (urlParams.get('admin') === 'dog2024' ? 'ADM' : 'CLI');
 
-    if (MODO === 'REGISTRO') {
-        document.getElementById('subtitulo').innerText = "¡Únete y gana un sello de regalo! 🎁";
+    if (MODO === 'REG') {
+        document.getElementById('subtitulo').innerText = "¡Regístrate y gana un sello! 🎁";
         document.getElementById('btnAccion').innerText = "Unirme al Club";
         document.getElementById('btnAccion').disabled = true;
-        document.getElementById('grupoCorreo').style.display = "block"; // Mostrar correo
+        document.getElementById('grupoCorreo').style.display = "block";
         document.getElementById('seccionLegal').style.display = "block";
-    } else if (MODO === 'ADMIN') {
-        document.getElementById('subtitulo').innerText = "Panel Administrativo 🛠️";
-        document.getElementById('btnAccion').innerText = "Registrar Pizza (+1)";
-        document.getElementById('grupoCorreo').style.display = "block"; // Permitir al admin editar correo
+    } else if (MODO === 'ADM') {
+        document.getElementById('subtitulo').innerText = "Panel Admin 🛠️";
+        document.getElementById('btnAccion').innerText = "Sumar Sello (+1)";
+        document.getElementById('grupoCorreo').style.display = "block";
     } else {
-        document.getElementById('subtitulo').innerText = "Consulta tus sellos 🍕";
-        document.getElementById('btnAccion').innerText = "Ver mis sellos";
+        document.getElementById('subtitulo').innerText = "Consulta tus puntos 🍕";
         document.getElementById('clienteNombre').disabled = true;
     }
 
-    function validarBoton() {
-        if (MODO === 'REGISTRO') {
-            document.getElementById('btnAccion').disabled = !document.getElementById('aceptoBases').checked;
-        }
+    function validar() {
+        if (MODO === 'REG') document.getElementById('btnAccion').disabled = !document.getElementById('aceptoBases').checked;
     }
 
     async function procesar() {
         const id = document.getElementById('clienteId').value.trim();
-        const nombre = document.getElementById('clienteNombre').value.trim();
-        const correo = document.getElementById('clienteCorreo').value.trim();
-        
-        if (!id) return alert("Ingresa tu WhatsApp.");
-
-        if (MODO === 'REGISTRO') {
-            if (!nombre || !correo) return alert("Nombre y correo son obligatorios para registrarte.");
-            if (!correo.includes("@")) return alert("Por favor, ingresa un correo válido.");
-        }
-
+        const nom = document.getElementById('clienteNombre').value.trim();
+        const cor = document.getElementById('clienteCorreo').value.trim();
         const btn = document.getElementById('btnAccion');
-        const txt = btn.innerText;
+        const btnWS = document.getElementById('btnNotificar');
+
+        if (!id) return alert("Falta el número");
+        if (MODO === 'REG' && (!nom || !cor)) return alert("Nombre y correo obligatorios");
+
         btn.innerText = "Procesando...";
         btn.disabled = true;
+        btnWS.style.display = "none";
 
         try {
-            const res = await fetch(WEB_APP_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    id: id, 
-                    nombre: nombre, 
-                    correo: correo, 
-                    accion: MODO === 'REGISTRO' ? 'registrar_nuevo' : (MODO === 'ADMIN' ? 'sumar' : 'consultar'),
-                    clave: MODO === 'ADMIN' ? 'dog2024' : ''
-                }) 
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    id: id, nombre: nom, correo: cor,
+                    accion: MODO === 'REG' ? 'registrar_nuevo' : (MODO === 'ADM' ? 'sumar' : 'consultar'),
+                    clave: MODO === 'ADM' ? 'dog2024' : ''
+                })
             });
             const data = await res.json();
             
             if (data.error) {
                 alert(data.error);
             } else {
-                if (MODO === 'REGISTRO') alert("¡Bienvenido! Ya tienes tu primer sello.");
                 iluminar(data.puntos || 0);
                 if (data.nombre) document.getElementById('clienteNombre').value = data.nombre;
+
+                // LÓGICA DE NOTIFICACIÓN (Sello 9)
+                if (MODO === 'ADM' && data.puntos === 9) {
+                    const mensaje = `¡Hola ${data.nombre || ''}! 🍕 Soy de Slice Dog. ¡Te falta solo 1 SELLO para tu PIZZA GRATIS! Te esperamos pronto para completar tu tarjeta.`;
+                    btnWS.href = `https://wa.me/${id}?text=${encodeURIComponent(mensaje)}`;
+                    btnWS.style.display = "flex";
+                }
+                if (MODO === 'REG') alert("¡Bienvenido! Primer sello de regalo activado.");
             }
         } catch (e) { alert("Error de conexión"); }
-        finally { 
-            btn.innerText = txt; 
-            if (MODO !== 'REGISTRO') btn.disabled = false;
-            else validarBoton();
-        }
+        finally { btn.innerText = MODO === 'REG' ? "Unirme" : "Procesar"; btn.disabled = false; }
     }
 
     function iluminar(puntos) {
