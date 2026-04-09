@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,8 +17,8 @@
         input:disabled { background-color: #f1f2f6; cursor: not-allowed; color: #7f8c8d; }
         
         .btn-search { width: 100px; background-color: #3498db; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .btn-main { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-clear { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 10px; font-weight: bold; }
+        .btn-main { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
+        .btn-clear { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 10px; font-weight: bold; display: none; }
         
         .btn-whatsapp { width: 100%; padding: 12px; background-color: #25d366; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; display: none; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
         
@@ -52,7 +53,7 @@
         <input type="text" id="clienteNombre" placeholder="Nombre completo">
     </div>
 
-    <div class="input-group" id="grupoCorreo">
+    <div class="input-group" id="grupoCorreo" style="display: none;">
         <label>CORREO ELECTRÓNICO (Opcional)</label>
         <input type="email" id="clienteCorreo" placeholder="ejemplo@correo.com">
     </div>
@@ -69,6 +70,8 @@
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
+    const urlParams = new URLSearchParams(window.location.search);
+    const CLAVE_ADMIN = urlParams.get('admin');
 
     function limpiarFormulario() {
         document.getElementById('clienteId').value = "";
@@ -80,9 +83,8 @@
     }
 
     function actualizarEnlaceWhatsapp(id, nombre, puntos) {
-        // Si es modo cliente, nunca mostramos el botón
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('cliente') === 'si') return;
+        // Solo mostramos el botón de WhatsApp si es Admin
+        if (CLAVE_ADMIN !== 'dog2024') return;
 
         const btnWsp = document.getElementById('linkWhatsapp');
         if (!id || puntos === 0) { btnWsp.style.display = "none"; return; }
@@ -123,8 +125,7 @@
                 document.getElementById('clienteCorreo').value = data.correo || "";
                 actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
             } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('cliente') !== 'si') {
+                if (CLAVE_ADMIN === 'dog2024') {
                     alert("Cliente nuevo. Por favor ingresa el nombre.");
                     document.getElementById('clienteNombre').disabled = false;
                     document.getElementById('clienteNombre').value = "";
@@ -147,10 +148,21 @@
         try {
             const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({ id: id, nombre: nombre, correo: correo, accion: 'sumar' })
+                body: JSON.stringify({ 
+                    id: id, 
+                    nombre: nombre, 
+                    correo: correo, 
+                    accion: 'sumar',
+                    clave: CLAVE_ADMIN // Enviamos la llave al servidor
+                })
             });
             const data = await res.json();
             
+            if (data.error) {
+                alert("⚠️ Error: " + data.error);
+                return;
+            }
+
             iluminar(data.puntos);
             actualizarEnlaceWhatsapp(id, nombre, data.puntos);
             document.getElementById('clienteNombre').disabled = true;
@@ -176,13 +188,19 @@
         cont.appendChild(div);
     }
 
-    // --- LÓGICA DE SEGURIDAD PARA CLIENTES ---
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('cliente') === 'si') {
-        document.getElementById('btnSumar').style.display = 'none';
-        document.getElementById('btnClear').style.display = 'none';
-        document.getElementById('grupoCorreo').style.display = 'none';
-        document.getElementById('linkWhatsapp').remove(); // ELIMINADO TOTALMENTE PARA EL CLIENTE
+    // --- LÓGICA DE SEGURIDAD INTERNA ---
+    if (CLAVE_ADMIN === 'dog2024') {
+        // MODO ADMINISTRADOR: Mostrar botones
+        document.getElementById('btnSumar').style.display = 'block';
+        document.getElementById('btnClear').style.display = 'inline-block';
+        document.getElementById('grupoCorreo').style.display = 'block';
+        document.getElementById('subtitulo').innerText = "Panel de Gestión Administrativa 🛠️";
+    } else {
+        // MODO CLIENTE: Asegurar que todo esté oculto y limpio
+        document.getElementById('btnSumar').remove();
+        document.getElementById('btnClear').remove();
+        document.getElementById('grupoCorreo').remove();
+        document.getElementById('linkWhatsapp').remove();
         
         document.getElementById('clienteNombre').disabled = true;
         document.getElementById('clienteNombre').placeholder = "Tu nombre aparecerá al buscar";
