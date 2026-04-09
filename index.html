@@ -1,4 +1,3 @@
-HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,10 +5,10 @@ HTML
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recompensas SliceDog 🍕</title>
+    <title>Recompensas Slice Dog 🍕</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; position: relative; z-index: 1; }
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; font-size: 12px; color: #34495e; margin-bottom: 5px; font-weight: bold; }
         .id-row { display: flex; gap: 10px; }
@@ -44,13 +43,13 @@ HTML
         <label>WHATSAPP / ID DEL CLIENTE</label>
         <div class="id-row">
             <input type="text" id="clienteId" placeholder="Ej: 56912345678">
-            <button class="btn-search" onclick="consultarPuntos()">🔍 VER</button>
+            <button class="btn-search" id="btnVer" onclick="consultarPuntos()">🔍 VER</button>
         </div>
     </div>
 
     <div class="input-group" id="grupoNombre">
         <label>NOMBRE CLIENTE</label>
-        <input type="text" id="clienteNombre" placeholder="Nombre completo">
+        <input type="text" id="clienteNombre" placeholder="Nombre aparecerá aquí" disabled>
     </div>
 
     <div class="input-group" id="grupoCorreo" style="display: none;">
@@ -76,24 +75,10 @@ HTML
     function limpiarFormulario() {
         document.getElementById('clienteId').value = "";
         document.getElementById('clienteNombre').value = "";
-        document.getElementById('clienteNombre').disabled = false;
+        document.getElementById('clienteNombre').disabled = (CLAVE_ADMIN !== 'dog2024');
         document.getElementById('clienteCorreo').value = "";
         document.getElementById('linkWhatsapp').style.display = "none";
         iluminar(0);
-    }
-
-    function actualizarEnlaceWhatsapp(id, nombre, puntos) {
-        // Solo mostramos el botón de WhatsApp si es Admin
-        if (CLAVE_ADMIN !== 'dog2024') return;
-
-        const btnWsp = document.getElementById('linkWhatsapp');
-        if (!id || puntos === 0) { btnWsp.style.display = "none"; return; }
-        const pz = "🍕";
-        let mensaje = (puntos >= 10) 
-            ? `¡Hola ${nombre}! ${pz} Tienes 10 sellos acumulados. ¡Tu próxima Pizza es GRATIS! ${pz}`
-            : `¡Hola ${nombre}! ${pz} Ya llevas ${puntos} sellos. ¡Te faltan ${10-puntos} para tu Pizza GRATIS! ${pz}`;
-        btnWsp.href = `https://wa.me/${id}?text=${encodeURIComponent(mensaje)}`;
-        btnWsp.style.display = "flex";
     }
 
     function iluminar(puntos) {
@@ -109,8 +94,11 @@ HTML
 
     async function consultarPuntos() {
         const id = document.getElementById('clienteId').value.trim();
-        if (!id) return alert("Ingresa un número");
+        if (!id) return;
         
+        const btnVer = document.getElementById('btnVer');
+        btnVer.innerText = "...";
+
         try {
             const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
@@ -118,22 +106,26 @@ HTML
             });
             const data = await res.json();
             
-            iluminar(data.puntos || 0);
             if (data.existe) {
                 document.getElementById('clienteNombre').value = data.nombre;
-                document.getElementById('clienteNombre').disabled = true;
-                document.getElementById('clienteCorreo').value = data.correo || "";
-                actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
-            } else {
+                iluminar(data.puntos || 0);
                 if (CLAVE_ADMIN === 'dog2024') {
-                    alert("Cliente nuevo. Por favor ingresa el nombre.");
+                    document.getElementById('clienteCorreo').value = data.correo || "";
+                    actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
+                }
+            } else {
+                iluminar(0);
+                document.getElementById('clienteNombre').value = "";
+                if (CLAVE_ADMIN === 'dog2024') {
+                    alert("Cliente nuevo. Ingresa su nombre para registrarlo.");
                     document.getElementById('clienteNombre').disabled = false;
-                    document.getElementById('clienteNombre').value = "";
-                } else {
-                    alert("Número no registrado. Consulta en el mostrador.");
                 }
             }
-        } catch (e) { alert("Error de conexión"); }
+        } catch (e) { 
+            console.log("Error silencioso de consulta"); 
+        } finally {
+            btnVer.innerText = "🔍 VER";
+        }
     }
 
     async function sumarPunto() {
@@ -153,7 +145,7 @@ HTML
                     nombre: nombre, 
                     correo: correo, 
                     accion: 'sumar',
-                    clave: CLAVE_ADMIN // Enviamos la llave al servidor
+                    clave: CLAVE_ADMIN
                 })
             });
             const data = await res.json();
@@ -164,22 +156,24 @@ HTML
             }
 
             iluminar(data.puntos);
-            actualizarEnlaceWhatsapp(id, nombre, data.puntos);
-            document.getElementById('clienteNombre').disabled = true;
-
-            if(data.puntos === 1 && data.reinicio) {
-                alert("¡Ciclo completado! Iniciando nueva tarjeta.");
-            } else if(data.puntos >= 10) {
+            if(data.puntos >= 10) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 alert("🎁 ¡PIZZA GRATIS LISTA!");
             } else {
                 alert("Punto registrado correctamente.");
             }
-        } catch (e) { alert("Error al sumar punto"); }
+        } catch (e) { alert("Error al conectar con el servidor"); }
         finally { document.getElementById('btnSumar').innerText = "+ REGISTRAR PIZZA"; }
     }
 
-    // Crear sellos visuales
+    function actualizarEnlaceWhatsapp(id, nombre, puntos) {
+        if (CLAVE_ADMIN !== 'dog2024') return;
+        const btnWsp = document.getElementById('linkWhatsapp');
+        const mensaje = `¡Hola ${nombre}! 🍕 Ya llevas ${puntos} sellos.`;
+        btnWsp.href = `https://wa.me/${id}?text=${encodeURIComponent(mensaje)}`;
+        btnWsp.style.display = "flex";
+    }
+
     const cont = document.getElementById('contenedorPuntos');
     for(let i=1; i<=10; i++) {
         let div = document.createElement('div');
@@ -188,22 +182,13 @@ HTML
         cont.appendChild(div);
     }
 
-    // --- LÓGICA DE SEGURIDAD INTERNA ---
     if (CLAVE_ADMIN === 'dog2024') {
-        // MODO ADMINISTRADOR: Mostrar botones
         document.getElementById('btnSumar').style.display = 'block';
         document.getElementById('btnClear').style.display = 'inline-block';
         document.getElementById('grupoCorreo').style.display = 'block';
+        document.getElementById('clienteNombre').disabled = false;
         document.getElementById('subtitulo').innerText = "Panel de Gestión Administrativa 🛠️";
     } else {
-        // MODO CLIENTE: Asegurar que todo esté oculto y limpio
-        document.getElementById('btnSumar').remove();
-        document.getElementById('btnClear').remove();
-        document.getElementById('grupoCorreo').remove();
-        document.getElementById('linkWhatsapp').remove();
-        
-        document.getElementById('clienteNombre').disabled = true;
-        document.getElementById('clienteNombre').placeholder = "Tu nombre aparecerá al buscar";
         document.getElementById('subtitulo').innerText = "Consulta tus sellos acumulados 🍕";
     }
 </script>
