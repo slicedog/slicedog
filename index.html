@@ -1,196 +1,138 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3595/3595455.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recompensas Slice Dog 🍕</title>
+    <title>Club Slice Dog 🍕</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; position: relative; z-index: 1; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         .input-group { margin-bottom: 15px; text-align: left; }
         label { display: block; font-size: 12px; color: #34495e; margin-bottom: 5px; font-weight: bold; }
-        .id-row { display: flex; gap: 10px; }
-        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
-        input:disabled { background-color: #f1f2f6; cursor: not-allowed; color: #7f8c8d; }
+        input { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        .btn-main { width: 100%; padding: 15px; background-color: #e67e22; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main:disabled { background-color: #bdc3c7; cursor: not-allowed; }
         
-        .btn-search { width: 100px; background-color: #3498db; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .btn-main { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
-        .btn-clear { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 10px; font-weight: bold; display: none; }
-        
-        .btn-whatsapp { width: 100%; padding: 12px; background-color: #25d366; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; display: none; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        /* Estilo para las bases legales */
+        .reglas-box { background: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 10px; font-size: 11px; color: #7f8c8d; text-align: left; height: 100px; overflow-y: scroll; margin-bottom: 10px; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; text-align: left; font-size: 12px; margin-bottom: 15px; }
         
         .stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 25px; }
-        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; transition: all 0.4s; }
-        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; border-style: solid; transform: scale(1.1); box-shadow: 0 0 10px rgba(241,196,15,0.5); }
-
-        @keyframes ganar {
-            0% { transform: scale(1.1); box-shadow: 0 0 10px #f1c40f; }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px #f39c12; }
-            100% { transform: scale(1.1); box-shadow: 0 0 10px #f1c40f; }
-        }
-        .winner { animation: ganar 1s infinite !important; background-color: #e74c3c !important; color: white !important; border: 2px solid #c0392b !important; }
+        .stamp { width: 50px; height: 50px; border-radius: 50%; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-weight: bold; }
+        .active { background-color: #f1c40f; color: white; border: 2px solid #f39c12; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2 id="titulo">Slice Dog 🍕</h2>
-    <p id="subtitulo">Programa de Recompensa</p>
-    
-    <div class="input-group">
-        <label>WHATSAPP / ID DEL CLIENTE</label>
-        <div class="id-row">
+    <p id="subtitulo">Cargando...</p>
+
+    <div id="formRegistro">
+        <div class="input-group">
+            <label>WHATSAPP (ID)</label>
             <input type="text" id="clienteId" placeholder="Ej: 56912345678">
-            <button class="btn-search" id="btnVer" onclick="consultarPuntos()">🔍 VER</button>
         </div>
+        <div class="input-group">
+            <label>TU NOMBRE</label>
+            <input type="text" id="clienteNombre" placeholder="¿Cómo te llamamos?">
+        </div>
+
+        <div id="seccionLegal" style="display:none;">
+            <label>BASES DEL PROGRAMA</label>
+            <div class="reglas-box">
+                <strong>1. Premio:</strong> Completa 10 sellos y obtén una pizza de regalo.<br>
+                <strong>2. Condiciones:</strong> Válido solo para pizzas Medianas y Grandes.<br>
+                <strong>3. Vigencia:</strong> Los sellos expiran el 31 de diciembre de 2026.<br>
+                <strong>4. Privacidad:</strong> Tus datos se usarán solo para este programa.
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="aceptoBases" onchange="validarBoton()">
+                <span>He leído y acepto las bases y recibir mi primer sello de regalo.</span>
+            </div>
+        </div>
+
+        <button class="btn-main" id="btnAccion" onclick="procesar()">Consultar</button>
     </div>
 
-    <div class="input-group" id="grupoNombre">
-        <label>NOMBRE CLIENTE</label>
-        <input type="text" id="clienteNombre" placeholder="Nombre aparecerá aquí" disabled>
-    </div>
-
-    <div class="input-group" id="grupoCorreo" style="display: none;">
-        <label>CORREO ELECTRÓNICO (Opcional)</label>
-        <input type="email" id="clienteCorreo" placeholder="ejemplo@correo.com">
-    </div>
-
-    <button class="btn-main" id="btnSumar" onclick="sumarPunto()">+ REGISTRAR PIZZA</button>
-    <button class="btn-clear" id="btnClear" onclick="limpiarFormulario()">Limpiar / Nuevo Cliente</button>
-    
-    <a href="#" id="linkWhatsapp" class="btn-whatsapp" target="_blank">📲 ENVIAR RECORDATORIO</a>
-    
     <div class="stamps" id="contenedorPuntos"></div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbylbTtHRRQK2fiawomDnSbB9zQqfvjgsHo9JA8qSGoB6T7uR8tktMDa-F2q5CPFRCM46A/exec";
     const urlParams = new URLSearchParams(window.location.search);
-    const CLAVE_ADMIN = urlParams.get('admin');
+    const MODO = urlParams.get('registro') === 'nuevo' ? 'REGISTRO' : (urlParams.get('admin') === 'dog2024' ? 'ADMIN' : 'CLIENTE');
 
-    function limpiarFormulario() {
-        document.getElementById('clienteId').value = "";
-        document.getElementById('clienteNombre').value = "";
-        document.getElementById('clienteNombre').disabled = (CLAVE_ADMIN !== 'dog2024');
-        document.getElementById('clienteCorreo').value = "";
-        document.getElementById('linkWhatsapp').style.display = "none";
-        iluminar(0);
+    // Configurar la vista según el modo
+    if (MODO === 'REGISTRO') {
+        document.getElementById('subtitulo').innerText = "¡Únete y gana tu primer sello! 🎁";
+        document.getElementById('btnAccion').innerText = "Unirme al Club";
+        document.getElementById('btnAccion').disabled = true;
+        document.getElementById('seccionLegal').style.display = "block";
+    } else if (MODO === 'ADMIN') {
+        document.getElementById('subtitulo').innerText = "Panel de Administración 🛠️";
+        document.getElementById('btnAccion').innerText = "Registrar Pizza (+1)";
+    } else {
+        document.getElementById('subtitulo').innerText = "Consulta tus sellos 🍕";
+        document.getElementById('btnAccion').innerText = "Ver mis sellos";
     }
 
-    function iluminar(puntos) {
-        const circulos = document.querySelectorAll('.stamp');
-        circulos.forEach((div, i) => {
-            div.classList.remove('active', 'winner');
-            if (i < puntos) {
-                div.classList.add('active');
-                if (i === 9) div.classList.add('winner');
-            }
-        });
-    }
-
-    async function consultarPuntos() {
-        const id = document.getElementById('clienteId').value.trim();
-        if (!id) return;
-        
-        const btnVer = document.getElementById('btnVer');
-        btnVer.innerText = "...";
-
-        try {
-            const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ id: id, accion: 'consultar' })
-            });
-            const data = await res.json();
-            
-            if (data.existe) {
-                document.getElementById('clienteNombre').value = data.nombre;
-                iluminar(data.puntos || 0);
-                if (CLAVE_ADMIN === 'dog2024') {
-                    document.getElementById('clienteCorreo').value = data.correo || "";
-                    actualizarEnlaceWhatsapp(id, data.nombre, data.puntos);
-                }
-            } else {
-                iluminar(0);
-                document.getElementById('clienteNombre').value = "";
-                if (CLAVE_ADMIN === 'dog2024') {
-                    alert("Cliente nuevo. Ingresa su nombre para registrarlo.");
-                    document.getElementById('clienteNombre').disabled = false;
-                }
-            }
-        } catch (e) { 
-            console.log("Error silencioso de consulta"); 
-        } finally {
-            btnVer.innerText = "🔍 VER";
+    function validarBoton() {
+        if (MODO === 'REGISTRO') {
+            document.getElementById('btnAccion').disabled = !document.getElementById('aceptoBases').checked;
         }
     }
 
-    async function sumarPunto() {
+    async function procesar() {
         const id = document.getElementById('clienteId').value.trim();
         const nombre = document.getElementById('clienteNombre').value.trim();
-        const correo = document.getElementById('clienteCorreo').value.trim();
         
-        if (!id || !nombre) return alert("ID y Nombre son obligatorios");
+        if (!id) return alert("Ingresa tu número");
 
-        document.getElementById('btnSumar').innerText = "Registrando...";
+        const btn = document.getElementById('btnAccion');
+        btn.innerText = "Procesando...";
+        btn.disabled = true;
+
+        let payload = { id: id, nombre: nombre };
+        
+        if (MODO === 'REGISTRO') {
+            payload.accion = 'registrar_nuevo';
+        } else if (MODO === 'ADMIN') {
+            payload.accion = 'sumar';
+            payload.clave = 'dog2024';
+        } else {
+            payload.accion = 'consultar';
+        }
 
         try {
-            const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    id: id, 
-                    nombre: nombre, 
-                    correo: correo, 
-                    accion: 'sumar',
-                    clave: CLAVE_ADMIN
-                })
-            });
+            const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
             const data = await res.json();
             
             if (data.error) {
-                alert("⚠️ Error: " + data.error);
-                return;
-            }
-
-            iluminar(data.puntos);
-            if(data.puntos >= 10) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                alert("🎁 ¡PIZZA GRATIS LISTA!");
+                alert(data.error);
             } else {
-                alert("Punto registrado correctamente.");
+                if (MODO === 'REGISTRO') alert("¡Bienvenido! Has ganado tu primer sello.");
+                iluminar(data.puntos || 0);
+                if (data.nombre) document.getElementById('clienteNombre').value = data.nombre;
             }
-        } catch (e) { alert("Error al conectar con el servidor"); }
-        finally { document.getElementById('btnSumar').innerText = "+ REGISTRAR PIZZA"; }
+        } catch (e) { alert("Error de conexión"); }
+        finally { 
+            btn.innerText = MODO === 'REGISTRO' ? "Unirme al Club" : (MODO === 'ADMIN' ? "Registrar Pizza" : "Ver mis sellos");
+            btn.disabled = (MODO === 'REGISTRO' && !document.getElementById('aceptoBases').checked);
+        }
     }
 
-    function actualizarEnlaceWhatsapp(id, nombre, puntos) {
-        if (CLAVE_ADMIN !== 'dog2024') return;
-        const btnWsp = document.getElementById('linkWhatsapp');
-        const mensaje = `¡Hola ${nombre}! 🍕 Ya llevas ${puntos} sellos.`;
-        btnWsp.href = `https://wa.me/${id}?text=${encodeURIComponent(mensaje)}`;
-        btnWsp.style.display = "flex";
+    function iluminar(puntos) {
+        const cont = document.getElementById('contenedorPuntos');
+        cont.innerHTML = "";
+        for(let i=1; i<=10; i++) {
+            let div = document.createElement('div');
+            div.className = i <= puntos ? 'stamp active' : 'stamp';
+            div.innerText = i;
+            cont.appendChild(div);
+        }
     }
-
-    const cont = document.getElementById('contenedorPuntos');
-    for(let i=1; i<=10; i++) {
-        let div = document.createElement('div');
-        div.className = 'stamp';
-        div.innerText = i;
-        cont.appendChild(div);
-    }
-
-    if (CLAVE_ADMIN === 'dog2024') {
-        document.getElementById('btnSumar').style.display = 'block';
-        document.getElementById('btnClear').style.display = 'inline-block';
-        document.getElementById('grupoCorreo').style.display = 'block';
-        document.getElementById('clienteNombre').disabled = false;
-        document.getElementById('subtitulo').innerText = "Panel de Gestión Administrativa 🛠️";
-    } else {
-        document.getElementById('subtitulo').innerText = "Consulta tus sellos acumulados 🍕";
-    }
+    iluminar(0);
 </script>
 </body>
 </html>
